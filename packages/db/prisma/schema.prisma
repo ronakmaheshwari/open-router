@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String              @id @default(uuid())
+  name         String
+  email        String              @unique
+  password     String
+  credit       Credit?
+  transaction  OnrampTransaction[]
+  apikey       ApiKey[]
+  conversation Conversation[]
+
+  @@index([email])
+}
+
+model ApiKey {
+  id           String         @id @default(uuid())
+  userId       String
+  name         String
+  apiKey       String
+  disabled     Boolean        @default(false)
+  is_deleted   Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  user         User           @relation(fields: [userId], references: [id])
+  conversation Conversation[]
+
+  @@index([apiKey])
+}
+
+model Credit {
+  id     String @id @default(uuid())
+  userId String @unique
+  amount Int    @default(0)
+  status String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model OnrampTransaction {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Int
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Company {
+  id      String  @id @default(uuid())
+  name    String
+  website String
+  model   Model[]
+}
+
+model Model {
+  id                    String                 @id @default(uuid())
+  name                  String
+  slug                  String
+  companyId             String
+  company               Company                @relation(fields: [companyId], references: [id])
+  modelProviderMappings ModelProviderMapping[]
+}
+
+model Provider {
+  id                    String                 @id @default(uuid())
+  name                  String
+  website               String
+  modelProviderMappings ModelProviderMapping[]
+}
+
+model ModelProviderMapping {
+  id              String         @id @default(uuid())
+  modelId         String
+  providerId      String
+  inputtokencost  Float
+  outputtokencost Float
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  conversation    Conversation[]
+  model           Model          @relation(fields: [modelId], references: [id])
+  provider        Provider       @relation(fields: [providerId], references: [id])
+}
+
+model Conversation {
+  id                     String               @id @default(uuid())
+  userId                 String
+  apiKeyId               String
+  modelProviderMappingId String
+  input                  String
+  output                 String
+  inputTokenCount        Int
+  outputTokenCount       Int
+  user                   User                 @relation(fields: [userId], references: [id])
+  apiKey                 ApiKey               @relation(fields: [apiKeyId], references: [id])
+  modelProviderMapping   ModelProviderMapping @relation(fields: [modelProviderMappingId], references: [id])
+
+  @@index([userId])
+  @@index([apiKeyId])
+  @@index([modelProviderMappingId])
+}
