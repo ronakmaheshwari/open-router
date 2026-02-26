@@ -1,4 +1,4 @@
-# api-backend
+# primary-backend
 
 To install dependencies:
 
