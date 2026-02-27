@@ -1,6 +1,8 @@
 import { Elysia } from "elysia";
 import auth from "./modules/auth";
 import pino from "pino"
+import jwt from "@elysiajs/jwt";
+import jwtPlugin from "./plugins/jwt";
 
 const logger = pino()
 

@@ -1,7 +1,8 @@
-import Elysia, { t } from "elysia";
+import Elysia, { status, t } from "elysia";
 import AuthModel from "./model";
 import Auth from "./service";
 import { jwt } from '@elysiajs/jwt'
+import userMiddleware from "../../middleware/middleware";
 
 const jwtSecret = process.env.JWT_SECRET;
 if(!jwtSecret){
@@ -25,7 +26,9 @@ const auth = new Elysia({prefix: '/auth'})
         response: {
             201: AuthModel.signUpResponse,
             400: AuthModel.signUpInvalid,
-            409: t.String(),
+            409: t.Object({
+                message: t.String(),
+            }),
             500: t.Object({
                 message: t.String()
             })
@@ -51,8 +54,9 @@ const auth = new Elysia({prefix: '/auth'})
             })
         }
     })
-    .get('/profile', async({ jwt }) => {
-        const response = await jwt.verify()
-    })
+    .use(userMiddleware)
+    .get("/profile", ({ userId }) => {
+        return { userId };
+    });
 
 export default auth;
