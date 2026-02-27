@@ -2,35 +2,29 @@
   "name": "@repo/db",
   "type": "module",
   "private": true,
-
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-
   "exports": {
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },
-
   "scripts": {
     "build": "bunx tsc"
   },
-
   "dependencies": {
-    "@prisma/client": "^7.4.1",
     "@prisma/adapter-pg": "^7.4.0",
     "pg": "^8.18.0"
   },
-
   "devDependencies": {
+    "@prisma/client": "6",
     "@repo/typescript-config": "*",
     "@types/bun": "latest",
     "@types/pg": "^8.16.0",
     "dotenv": "^17.3.1",
-    "prisma": "^7.4.1"
+    "prisma": "6"
   },
-
   "peerDependencies": {
     "typescript": "^5"
   }

@@ -8,7 +8,6 @@ if(!saltRound){
 }
 
 abstract class Auth {
-
     static async signUp({name, email, password}: AuthModel["signUpBody"]) {
         const user = await db.user.findUnique({
             where: {

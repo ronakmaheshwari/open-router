@@ -17,7 +17,7 @@ const AuthModel = {
       password: t.String({
         minLength: 6,
         maxLength: 64,
-        pattern: '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/',
+        pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).+$",
         error:
           "Password must be at least 6 characters long and include uppercase, lowercase, and a number",
       }),
@@ -30,7 +30,13 @@ const AuthModel = {
     token: t.String(),
   }),
 
-  signUpInvalid: t.Literal("Invalid name,email or password"),
+  signUpInvalid: t.Object({
+    message: t.Literal("Invalid email or password")
+  }),
+
+  signUpFailure: t.Object({
+    message: t.Literal("Internal Server error occured")
+  }),
 
   signInBody: t.Object(
     {
@@ -41,12 +47,12 @@ const AuthModel = {
         password: t.String({
             minLength: 6,
             maxLength: 64,
-            pattern: '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/',
+            pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).+$",
             error:
             "Password must be at least 6 characters long and include uppercase, lowercase, and a number",
         }),
     },
-    { additionalProperties: false }
+    { additionalProperties: false}
   ),
 
   signInResponse: t.Object({
@@ -54,7 +60,13 @@ const AuthModel = {
     token: t.String()
   }),
 
-  signInInvalid: t.Literal("Invalid email or password")
+  signInInvalid: t.Object({
+    message: t.Literal("Invalid email or password")
+  }),
+
+  signInFailure: t.Object({
+    message: t.Literal("Internal Server error occured")
+  }),
 
 } as const;
 

@@ -1,7 +1,28 @@
 import { Elysia } from "elysia";
-import db from "@repo/db"
+import auth from "./modules/auth";
+import pino from "pino"
 
-const app = new Elysia().get("/", () => "Hello Elysia").listen(3000);
+const logger = pino()
+
+const apiV1 = new Elysia({ prefix: '/api/v1' })
+  .use(auth)
+
+const app = new Elysia()
+  .onRequest(({ request })=>{
+    logger.info({
+      method: request.method,
+      url: request.url
+    })
+  })
+  .onError(({ code, error, set }) => {
+    if (code === "INTERNAL_SERVER_ERROR") {
+        set.status = 500;
+        return { message: "Internal server error" };
+    }
+  })
+  .get("/", () => "Hello Elysia")
+  .use(apiV1)
+  .listen(3000);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
