@@ -3,11 +3,13 @@ import auth from "./modules/auth";
 import pino from "pino"
 import jwt from "@elysiajs/jwt";
 import jwtPlugin from "./plugins/jwt";
+import apikey from "./modules/api-key";
 
 const logger = pino()
 
 const apiV1 = new Elysia({ prefix: '/api/v1' })
   .use(auth)
+  .use(apikey)
 
 const app = new Elysia()
   .onRequest(({ request })=>{

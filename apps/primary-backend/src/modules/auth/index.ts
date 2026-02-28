@@ -55,8 +55,24 @@ const auth = new Elysia({prefix: '/auth'})
         }
     })
     .use(userMiddleware)
-    .get("/profile", ({ userId }) => {
-        return { userId };
+    .get("/profile", async ({ userId, set }) => {
+        const response = await Auth.getProfile({userId});
+        set.status = 201
+        return { 
+            message: "Profile successfully fetched",
+            data: {
+                name: response.name,
+                email: response.email
+            }
+         };
+    },{
+        response: {
+            201: AuthModel.profileBodyResponse,
+            404: t.String(),
+            500: t.Object({
+                message: t.String()
+            })
+        }
     });
 
 export default auth;

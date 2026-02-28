@@ -68,6 +68,18 @@ const AuthModel = {
     message: t.Literal("Internal Server error occured")
   }),
 
+  profileBody: t.Object({
+    userId: t.String()
+  }),
+
+  profileBodyResponse: t.Object({
+    message: t.String(),
+    data: t.Object({
+      name: t.String(),
+      email: t.String()
+    })
+  })
+
 } as const;
 
 export type AuthModel = {

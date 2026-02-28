@@ -57,6 +57,22 @@ abstract class Auth {
             userId: user.id
         }
     }
+
+    static async getProfile({ userId }: AuthModel["profileBody"]) {
+        const user = await db.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if(!user) {
+            throw status(404, `The given user is not present with our services`);
+        }
+        return {
+            name: user.name,
+            email: user.email
+        }
+    }
     
 }
 
