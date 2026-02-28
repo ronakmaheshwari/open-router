@@ -1,5 +1,6 @@
 import { jwt } from "@elysiajs/jwt";
-import Elysia from "elysia";
+import db from "@repo/db";
+import Elysia, { status } from "elysia";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) {
@@ -17,6 +18,16 @@ export const userMiddleware = (app: Elysia) =>
       const payload = await jwt.verify(token) as { sub: string };
       
       if (!payload?.sub) throw new Error("Unauthorized");
+
+      const findUser = await db.user.findUnique({
+        where: {
+          id: payload.sub
+        }
+      })
+
+      if(!findUser) {
+        throw status(401, `You are unauthorized to access these services`)
+      }
       
       return { userId: payload.sub };
     });

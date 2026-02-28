@@ -1,9 +1,8 @@
 import { Elysia } from "elysia";
 import auth from "./modules/auth";
 import pino from "pino"
-import jwt from "@elysiajs/jwt";
-import jwtPlugin from "./plugins/jwt";
 import apikey from "./modules/api-key";
+import { openapi } from '@elysiajs/openapi'
 
 const logger = pino()
 
@@ -24,6 +23,7 @@ const app = new Elysia()
         return { message: "Internal server error" };
     }
   })
+  .use(openapi())
   .get("/", () => "Hello Elysia")
   .use(apiV1)
   .listen(3000);

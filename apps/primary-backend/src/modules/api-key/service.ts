@@ -22,9 +22,11 @@ abstract class Apikey {
                 creditsConsumed: true
             }
         })
+
         if(keys.length === 0 || !keys) {
             throw status(404, "No keys were found")
         }
+        
         return {
             keys: keys
         }
@@ -33,8 +35,6 @@ abstract class Apikey {
     static async createKey({userId,name}: {userId: string, name: string}) {
         const apikey = ApikeyGenerator(10);
         
-        console.log(userId);
-
         const createKey = await db.apiKey.create({
             data: {
                 userId: userId,
