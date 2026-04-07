@@ -50,7 +50,7 @@ abstract class PaymentService {
         }
     }
 
-    static async paymentTransaction({userId, card, amount}: PaymentModel["paymentBody"]) {
+    static async creditPayment({userId, card, amount}: PaymentModel["paymentBody"]) {
         const creditAmount = creditGenerator(amount);
 
         const payment = await db.$transaction(async (x: Prisma.TransactionClient) => {
@@ -65,7 +65,9 @@ abstract class PaymentService {
                 },
                 update: {
                     userId: userId,
-                    amount: creditAmount,
+                    amount: {
+                        increment: creditAmount
+                    },
                     status: "ACTIVE"
                 }
             })

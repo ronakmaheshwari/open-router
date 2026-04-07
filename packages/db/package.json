@@ -10,11 +10,15 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "prisma": {
+    "seed": "bun prisma/seeder/seed.ts"
+  },
   "scripts": {
     "build": "bunx tsc"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.0",
+    "@types/node": "^25.5.2",
     "pg": "^8.18.0"
   },
   "devDependencies": {
@@ -26,6 +30,6 @@
     "prisma": "6"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^6.0.2"
   }
 }
