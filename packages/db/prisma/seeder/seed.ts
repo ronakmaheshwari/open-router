@@ -2,186 +2,172 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+function randomBetween(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomChoice<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 async function main() {
-    console.log("Seeding started...");
+  console.log("Seeding started...");
 
-    const users = await Promise.all(
-        Array.from({ length: 4 }).map((_, i) =>
-            prisma.user.upsert({
-                where: { email: `user${i + 1}@test.com` },
-                update: {},
-                create: {
-                    name: `User ${i + 1}`,
-                    email: `user${i + 1}@test.com`,
-                    password: "hashed_password"
-                }
-            })
-        )
-    );
+  const users = await Promise.all(
+    Array.from({ length: 4 }).map((_, i) =>
+      prisma.user.upsert({
+        where: { email: `user${i + 1}@test.com` },
+        update: {},
+        create: {
+          name: `User ${i + 1}`,
+          email: `user${i + 1}@test.com`,
+          password: "hashed_password",
+        },
+      })
+    )
+  );
 
-    await Promise.all(
-        users.map((user, i) =>
-            prisma.credit.upsert({
-                where: { userId: user.id },
-                update: {},
-                create: {
-                    userId: user.id,
-                    amount: 1000 + i * 500,
-                    status: "ACTIVE"
-                }
-            })
-        )
-    );
+  await Promise.all(
+    users.map((user, i) =>
+      prisma.credit.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: {
+          userId: user.id,
+          amount: 5000 + i * 2000,
+          status: "ACTIVE",
+        },
+      })
+    )
+  );
 
-    const apiKeys = await Promise.all(
-        users.map((user, i) =>
-            prisma.apiKey.create({
-                data: {
-                    userId: user.id,
-                    name: `Key ${i + 1}`,
-                    apiKey: `sk_test_${user.id.slice(0, 8)}`,
-                    creditsConsumed: i * 100
-                }
-            })
-        )
-    );
-
-    const openai = await prisma.company.create({
+  const apiKeys = await Promise.all(
+    users.map((user, i) =>
+      prisma.apiKey.create({
         data: {
-            name: "OpenAI",
-            website: "https://openai.com"
-        }
-    });
+          userId: user.id,
+          name: `Primary Key ${i + 1}`,
+          apiKey: `sk_live_${user.id.slice(0, 10)}`,
+          creditsConsumed: randomBetween(0, 2000),
+          lastUsed: new Date(),
+        },
+      })
+    )
+  );
 
-    const anthropic = await prisma.company.create({
+  const companies = await Promise.all([
+    prisma.company.create({ data: { name: "OpenAI", website: "https://openai.com" } }),
+    prisma.company.create({ data: { name: "Anthropic", website: "https://anthropic.com" } }),
+    prisma.company.create({ data: { name: "Google", website: "https://ai.google" } }),
+    prisma.company.create({ data: { name: "Meta", website: "https://ai.meta.com" } }),
+  ]);
+
+  const modelData = [
+    { name: "GPT-4 Turbo", slug: "gpt-4-turbo", company: companies[0] },
+    { name: "GPT-4", slug: "gpt-4", company: companies[0] },
+    { name: "GPT-3.5", slug: "gpt-3.5", company: companies[0] },
+
+    { name: "Claude 3 Opus", slug: "claude-3-opus", company: companies[1] },
+    { name: "Claude 3 Sonnet", slug: "claude-3-sonnet", company: companies[1] },
+    { name: "Claude 3 Haiku", slug: "claude-3-haiku", company: companies[1] },
+
+    { name: "Gemini 1.5 Pro", slug: "gemini-1.5-pro", company: companies[2] },
+    { name: "Gemini Flash", slug: "gemini-flash", company: companies[2] },
+
+    { name: "LLaMA 3 70B", slug: "llama-3-70b", company: companies[3] },
+    { name: "LLaMA 3 8B", slug: "llama-3-8b", company: companies[3] },
+  ];
+
+  const models = await Promise.all(
+    modelData.map((m) =>
+      prisma.model.create({
         data: {
-            name: "Anthropic",
-            website: "https://anthropic.com"
-        }
-    });
+          name: m.name,
+          slug: m.slug,
+          companyId: m.company.id,
+        },
+      })
+    )
+  );
 
-    const google = await prisma.company.create({
+  const providers = await Promise.all([
+    prisma.provider.create({ data: { name: "OpenRouter", website: "https://openrouter.ai" } }),
+    prisma.provider.create({ data: { name: "Direct OpenAI", website: "https://api.openai.com" } }),
+    prisma.provider.create({ data: { name: "Anthropic Direct", website: "https://api.anthropic.com" } }),
+    prisma.provider.create({ data: { name: "Google AI", website: "https://ai.google.dev" } }),
+    prisma.provider.create({ data: { name: "Together AI", website: "https://together.ai" } }),
+  ]);
+
+  const mappings = [];
+
+  for (const model of models) {
+    const providerCount = randomBetween(2, 4); 
+    const shuffledProviders = [...providers].sort(() => 0.5 - Math.random());
+
+    for (let i = 0; i < providerCount; i++) {
+      const provider = shuffledProviders[i];
+
+      const mapping = await prisma.modelProviderMapping.create({
         data: {
-            name: "Google",
-            website: "https://ai.google"
-        }
-    });
+          modelId: model.id,
+          providerId: provider.id,
+          inputtokencost: parseFloat((Math.random() * 0.02).toFixed(4)),
+          outputtokencost: parseFloat((Math.random() * 0.04).toFixed(4)),
+        },
+      });
 
-    const gpt4 = await prisma.model.create({
-        data: {
-            name: "GPT-4",
-            slug: "gpt-4",
-            companyId: openai.id
-        }
-    });
-
-    const gpt35 = await prisma.model.create({
-        data: {
-            name: "GPT-3.5",
-            slug: "gpt-3.5",
-            companyId: openai.id
-        }
-    });
-
-    const claude = await prisma.model.create({
-        data: {
-            name: "Claude 3",
-            slug: "claude-3",
-            companyId: anthropic.id
-        }
-    });
-
-    const gemini = await prisma.model.create({
-        data: {
-            name: "Gemini Pro",
-            slug: "gemini-pro",
-            companyId: google.id
-        }
-    });
-
-    const openrouter = await prisma.provider.create({
-        data: {
-            name: "OpenRouter",
-            website: "https://openrouter.ai"
-        }
-    });
-
-    const direct = await prisma.provider.create({
-        data: {
-            name: "Direct API",
-            website: "https://api.direct.com"
-        }
-    });
-
-    const mappings = await Promise.all([
-        prisma.modelProviderMapping.create({
-            data: {
-                modelId: gpt4.id,
-                providerId: openrouter.id,
-                inputtokencost: 0.01,
-                outputtokencost: 0.03
-            }
-        }),
-        prisma.modelProviderMapping.create({
-            data: {
-                modelId: gpt35.id,
-                providerId: openrouter.id,
-                inputtokencost: 0.002,
-                outputtokencost: 0.002
-            }
-        }),
-        prisma.modelProviderMapping.create({
-            data: {
-                modelId: claude.id,
-                providerId: openrouter.id,
-                inputtokencost: 0.008,
-                outputtokencost: 0.024
-            }
-        }),
-        prisma.modelProviderMapping.create({
-            data: {
-                modelId: gemini.id,
-                providerId: direct.id,
-                inputtokencost: 0.001,
-                outputtokencost: 0.002
-            }
-        })
-    ]);
-
-    for (let i = 0; i < 4; i++) {
-        await prisma.conversation.create({
-            data: {
-                userId: users[i % users.length].id,
-                apiKeyId: apiKeys[i % apiKeys.length].id,
-                modelProviderMappingId: mappings[i % mappings.length].id,
-                input: "Hello AI",
-                output: "Hello! How can I help?",
-                inputTokenCount: 10 + i,
-                outputTokenCount: 20 + i
-            }
-        });
+      mappings.push(mapping);
     }
+  }
 
-    await Promise.all(
-        users.map((user, i) =>
-            prisma.onrampTransaction.create({
-                data: {
-                    userId: user.id,
-                    amount: 100 * (i + 1),
-                    status: i % 2 === 0 ? "SUCCESS" : "FAILED"
-                }
-            })
-        )
-    );
+  const sampleInputs = [
+    "Explain quantum computing simply",
+    "Write a Python API server",
+    "Summarize this article",
+    "Generate startup ideas",
+    "Fix this bug in my code",
+  ];
 
-    console.log("Seeding completed!");
+  const sampleOutputs = [
+    "Sure! Here's a simple explanation...",
+    "Here's a working solution...",
+    "Summary: ...",
+    "Here are some ideas...",
+    "Bug fixed! Here's the code...",
+  ];
+
+  for (let i = 0; i < 25; i++) {
+    await prisma.conversation.create({
+      data: {
+        userId: randomChoice(users).id,
+        apiKeyId: randomChoice(apiKeys).id,
+        modelProviderMappingId: randomChoice(mappings).id,
+        input: randomChoice(sampleInputs),
+        output: randomChoice(sampleOutputs),
+        inputTokenCount: randomBetween(5, 200),
+        outputTokenCount: randomBetween(20, 500),
+      },
+    });
+  }
+
+  for (let i = 0; i < 20; i++) {
+    await prisma.onrampTransaction.create({
+      data: {
+        userId: randomChoice(users).id,
+        amount: randomBetween(50, 1000),
+        status: randomChoice(["SUCCESS", "FAILED", "PENDING"]),
+      },
+    });
+  }
+
+  console.log("✅ Seeding completed!");
 }
 
 main()
-    .catch((e) => {
-        console.error("Seeder failed:", e);
-        throw e;
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch((e) => {
+    console.error("Seeder failed:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

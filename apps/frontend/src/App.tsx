@@ -1,38 +1,74 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APITester } from "./APITester";
+import { treaty } from "@elysiajs/eden/treaty2";
 import "./index.css";
+import type {App} from "primary-backend";
+import { useState } from "react";
+import { Toaster } from "@/components/ui/sonner"
+import { toast } from "sonner";
+import { Input } from "./components/ui/input";
+import { Button } from "./components/ui/button";
 
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
+const client = treaty<App>('localhost:3000')
+
 
 export function App() {
+  const [name, setName] = useState<string>("");
+  const [email,setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("")
+
+  async function Signup() {
+    const res = await client.api.v1.auth["signup"].post({
+      name: `${name}`, 
+      email: `${email}`, 
+      password: `${password}`
+    })
+
+    if(res.status === 201) {
+      const token = res.data?.token;
+      const message = res.data?.message;
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+      toast.success(message)
+    } else {
+      toast.error("Signup failed")
+    }
+  }
+
   return (
-    <div className="container mx-auto p-8 text-center relative z-10">
-      <div className="flex justify-center items-center gap-8 mb-8">
-        <img
-          src={logo}
-          alt="Bun Logo"
-          className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#646cffaa] scale-120"
-        />
-        <img
-          src={reactLogo}
-          alt="React Logo"
-          className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#61dafbaa] [animation:spin_20s_linear_infinite]"
-        />
-      </div>
-      <Card>
-        <CardHeader className="gap-4">
-          <CardTitle className="text-3xl font-bold">Bun + React</CardTitle>
-          <CardDescription>
-            Edit <code className="rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono">src/App.tsx</code> and save to
-            test HMR
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <APITester />
-        </CardContent>
-      </Card>
+    <div className="w-screen min-h-screen flex justify-center items-center bg-gray-200">
+  <Toaster />
+
+  <div className="w-[400px] border border-gray-400 bg-amber-50 p-6 rounded-md flex flex-col gap-6">
+    
+    <div className="w-full flex flex-col gap-4">
+      <Input 
+        placeholder="Enter your username" 
+        type="text" 
+        onChange={(e) => {setName(e.target.value)}} 
+      />
+      <Input 
+        placeholder="Enter your email" 
+        type="text" 
+        onChange={(e) => {setEmail(e.target.value)}} 
+      />
+      <Input 
+        placeholder="Enter your password" 
+        type="text" 
+        onChange={(e) => {setPassword(e.target.value)}} 
+      />
     </div>
+
+    <div className="w-full flex justify-center">
+      <Button 
+        variant="outline" 
+        title="Submit" 
+        className="w-full h-12"  
+        onClick={() => { Signup() }}
+      >Submit</Button>
+    </div>
+
+  </div>
+</div>
   );
 }
 

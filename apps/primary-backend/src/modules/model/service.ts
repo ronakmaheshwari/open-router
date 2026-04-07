@@ -105,6 +105,36 @@ abstract class ModelService {
             allModel: flattened
         }
     }
+
+    static async getAllProvidersForModel({id}: {id: string}) {
+        const findModel = await db.model.findUnique({
+            where: {
+                id: id
+            }
+        })
+
+        if(!findModel) {
+            throw status(404,"Invalid Model ID was provided")
+        }
+
+        const findProviders = await db.modelProviderMapping.findMany({
+            where: {
+                modelId: id
+            },
+            include: {
+                provider: true
+            }
+        })
+
+        return findProviders.map((x) => ({
+            id: x.id,
+            providerId: x.providerId,
+            providerName: x.provider.name,
+            providerWebsite: x.provider.website,
+            inputTokenCost: x.inputtokencost,
+            outputTokenCost: x.outputtokencost
+        }))
+    }
 }
 
 export default ModelService;

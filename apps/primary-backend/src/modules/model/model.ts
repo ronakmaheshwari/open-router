@@ -24,6 +24,15 @@ const ModelProviderInterface = t.Object({
     outputtokencost: t.Number()
 })
 
+const AllProviderInterface = t.Object({
+    id: t.String(),
+    providerId:  t.String(),
+    providerName:  t.String(),
+    providerWebsite: t.String(),
+    inputTokenCost:  t.Number(),
+    outputTokenCost: t.Number()
+})
+
 const Model = {
     getModelResponse: t.Object({
         message: t.String(),
@@ -45,6 +54,17 @@ const Model = {
             modelProviders: t.Array(ModelProviderInterface)
         })
     }),
+
+    getAllProvidersBody: t.Object({
+        id: t.String()
+    }),
+
+    getAllProvidersResponse: t.Object({
+        message: t.String(),
+        data: t.Object({
+            providers: t.Array(AllProviderInterface)
+        })
+    })
 }
 
 export default Model;

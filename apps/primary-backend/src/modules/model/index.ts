@@ -57,5 +57,22 @@ const model = new Elysia({prefix: '/model'})
             })
         }
     })
+    .get('/:id/providers', async({params: {id}}) => {
+        const response = await ModelService.getAllProvidersForModel({id});
+        return {
+            message: "All providers were successfully fetched",
+            data: {
+                providers: response
+            }
+        }
+    },{
+        response: {
+            201: Model.getAllProvidersResponse,
+            404: t.String(),
+            500: t.Object({
+                message: t.String()
+            })
+        }
+    })
 
 export default model
