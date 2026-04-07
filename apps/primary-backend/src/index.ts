@@ -3,12 +3,16 @@ import auth from "./modules/auth";
 import pino from "pino"
 import apikey from "./modules/api-key";
 import { openapi } from '@elysiajs/openapi'
+import model from "./modules/model";
+import payment from "./modules/payment";
 
 const logger = pino()
 
 const apiV1 = new Elysia({ prefix: '/api/v1' })
   .use(auth)
   .use(apikey)
+  .use(model)
+  .use(payment)
 
 const app = new Elysia()
   .onRequest(({ request })=>{

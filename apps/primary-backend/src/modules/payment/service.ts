@@ -25,9 +25,14 @@ abstract class PaymentService {
             throw status(404, "No transactions were found")
         }
 
-        return {
-            transactions: transactions
-        }
+        const formatted = transactions.map(tx => ({
+            id: tx.id,
+            amount: String(tx.amount), 
+            status: tx.status,
+            createdAt: tx.createdAt   
+        }))
+
+        return formatted
     }
 
     static async getCredit({userId}: PaymentModel["userIdSchema"]) {
@@ -46,7 +51,8 @@ abstract class PaymentService {
         }
 
         return {
-            credit: credit
+            status: credit.status,
+            amount: credit.amount
         }
     }
 

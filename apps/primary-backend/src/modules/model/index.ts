@@ -8,7 +8,9 @@ const model = new Elysia({prefix: '/model'})
         set.status = 201;
         return {
             message: "All models were successfully fetched",
-            models: response.models
+            data: {
+                models: response.models
+            }
         }
     },{
         response: {
@@ -24,7 +26,9 @@ const model = new Elysia({prefix: '/model'})
         set.status = 201;
         return {
             message: "All providers were successfully fetched",
-            providers: response.provider
+            data: {
+                providers: response.provider
+            }
         }
     },{
         response: {
@@ -40,7 +44,9 @@ const model = new Elysia({prefix: '/model'})
         set.status = 201;
         return {
             message: "All models and providers were successfully fetched",
-            modelProviders: response.allModel
+            data: {
+                modelProviders: response.allModel
+            }
         }
     },{
         response: {
@@ -51,3 +57,5 @@ const model = new Elysia({prefix: '/model'})
             })
         }
     })
+
+export default model

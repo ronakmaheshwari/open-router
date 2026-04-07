@@ -31,7 +31,10 @@ const payment = new Elysia({prefix: '/payment'})
         return {
             message: "Your credits were successfully fetched",
             data: {
-                credit: credit
+                credit: {
+                    status: credit.status,
+                    amount: credit.amount
+                }
             }
         }
     },{
@@ -53,7 +56,7 @@ const payment = new Elysia({prefix: '/payment'})
             credits: payment.credit
         }
     },{
-        body: PaymentModel.paymentBody,
+        body: PaymentModel.PaymentRequest,
         201: PaymentModel.paymentSuccessResponse,
         401: PaymentModel.paymentFailureResponse,
         500: t.Object({

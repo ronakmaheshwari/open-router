@@ -31,6 +31,20 @@ const PaymentModel = {
         })
     }),
 
+    PaymentRequest: t.Object({
+        card: t.String({
+            minLength: 19,
+            maxLength: 19,
+            pattern: "^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}$",
+            error: "Invalid card was provided",
+        }),
+        amount: t.Number({
+            minimum: 10,
+            maximum: 9999,
+            error: "Invalid amount. It should be at least 10 and not more than 9999"
+        })
+    }),
+
     paymentBody: t.Object({
         userId: t.String(),
         card: t.String({

@@ -20,8 +20,19 @@ abstract class ModelService {
             throw status(404 , "No models were found")
         }
 
+        const formatted = models.map(model => ({
+            id: model.id,
+            name: model.name,
+            slug: model.slug,
+            companyName: model.company?.name ?? "",
+            providerName: "",        
+            providerWebsite: "",   
+            inputtokencost: 0,         
+            outputtokencost: 0         
+        }))
+
         return {
-            models: models
+            models: formatted
         }
     }
 
@@ -53,9 +64,7 @@ abstract class ModelService {
                 name: true,
                 slug: true,
                 company: {
-                    select: {
-                        name: true
-                    }
+                    select: { name: true }
                 },
                 modelProviderMappings: {
                     select: {
@@ -75,12 +84,25 @@ abstract class ModelService {
             }
         })
 
-        if(allModel.length === 0) {
-            throw status(404 , "No models and providers were found")
+        if (allModel.length === 0) {
+            throw status(404, "No models and providers were found")
         }
 
+        const flattened = allModel.flatMap(model =>
+            model.modelProviderMappings.map(mapping => ({
+                id: model.id,
+                name: model.name,
+                slug: model.slug,
+                companyName: model.company?.name ?? "",
+                providerName: mapping.provider?.name ?? "",
+                providerWebsite: mapping.provider?.website ?? "",
+                inputtokencost: mapping.inputtokencost ?? 0,
+                outputtokencost: mapping.outputtokencost ?? 0
+            }))
+        )
+
         return {
-            allModel: allModel
+            allModel: flattened
         }
     }
 }
