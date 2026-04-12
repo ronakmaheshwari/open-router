@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import useElysiaClient from "@/providers/elysiaProvider";
+import { useAuth } from "@/providers/authContext";
 
 interface AuthProps {
   type: "signup" | "signin";
@@ -14,6 +15,8 @@ interface AuthProps {
 export default function AuthCard({ type }: AuthProps) {
   const isSignup = type === "signup";
   const client = useElysiaClient();
+  const navigate = useNavigate();
+  const { setToken } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,6 +43,7 @@ export default function AuthCard({ type }: AuthProps) {
       if (res.status === 200 || res.status === 201) {
         if (res.data?.token) {
           localStorage.setItem("token", res.data.token);
+          setToken(res.data.token)
         }
 
         toast.success(
@@ -47,6 +51,8 @@ export default function AuthCard({ type }: AuthProps) {
             ? "Account created successfully!"
             : "Signed in successfully!"
         );
+        
+        navigate("/dashboard");
       } else {
         toast.error(res.data?.message || "Something went wrong");
       }
@@ -78,7 +84,9 @@ export default function AuthCard({ type }: AuthProps) {
 
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 mb-4">
-            <span className="text-blue-400 font-bold text-2xl">✦</span>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white">
+                O
+            </div>
           </div>
 
           <h1 className="text-3xl font-bold text-white">
