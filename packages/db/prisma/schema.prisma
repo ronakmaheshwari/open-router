@@ -112,7 +112,8 @@ model Conversation {
   user                   User                 @relation(fields: [userId], references: [id])
   apiKey                 ApiKey               @relation(fields: [apiKeyId], references: [id])
   modelProviderMapping   ModelProviderMapping @relation(fields: [modelProviderMappingId], references: [id])
-
+  createdAt              DateTime @default(now())   
+  updatedAt              DateTime @updatedAt
   @@index([userId])
   @@index([apiKeyId])
   @@index([modelProviderMappingId])

@@ -77,6 +77,88 @@ abstract class Apikey {
         }
     }
 
+   static async getUsage({ userId }: { userId: string }) {
+    const findUser = await db.user.findUnique({
+        where: { id: userId },
+    });
+
+    if (!findUser) {
+        throw status(404, "Invalid userId was provided");
+    }
+
+    const usage = await db.conversation.aggregate({
+        where: { userId },
+        _count: { id: true },
+        _sum: {
+        inputTokenCount: true,
+        outputTokenCount: true,
+        },
+    });
+
+    const apiKeys = await db.apiKey.count({
+        where: {
+        userId,
+        is_deleted: false,
+        },
+    });
+
+    const recent = await db.conversation.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" }, 
+        take: 5,
+        select: {
+        createdAt: true,
+        inputTokenCount: true,
+        outputTokenCount: true,
+        modelProviderMapping: {
+            include: {
+            model: true,
+            },
+        },
+        },
+    });
+
+    const usageRaw = await db.conversation.findMany({
+        where: { userId },
+        select: {
+        createdAt: true,
+        inputTokenCount: true,
+        outputTokenCount: true,
+        },
+    });
+
+    const usageMap = new Map<string, number>();
+
+    usageRaw.forEach((item) => {
+        const date = item.createdAt.toISOString().split("T")[0]; 
+        const tokens = item.inputTokenCount + item.outputTokenCount;
+
+        usageMap.set(date, (usageMap.get(date) || 0) + tokens);
+    });
+
+    const usageByDay = Array.from(usageMap.entries()).map(
+        ([date, tokens]) => ({
+        date,
+        tokens,
+        })
+    ).sort((a, b) => a.date.localeCompare(b.date)); 
+
+    return {
+        totalRequests: usage._count.id || 0,
+        totalInputTokens: usage._sum.inputTokenCount || 0,
+        totalOutputTokens: usage._sum.outputTokenCount || 0,
+        apiKeys,
+
+        recent: recent.map((r) => ({
+        model: r.modelProviderMapping.model.name,
+        tokens: r.inputTokenCount + r.outputTokenCount,
+        createdAt: r.createdAt,
+        })),
+
+        usageByDay, 
+    };
+    }
+
     static async deleteKey({userId, id}: {userId: string, id: string}) {
         const findKey = await db.apiKey.findUnique({
             where: {

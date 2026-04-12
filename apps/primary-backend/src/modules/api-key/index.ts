@@ -63,6 +63,24 @@ const apikey = new Elysia({prefix: '/apikey'})
             })
         }
     })
+    .get("/dashboard", async ({ userId, set }) => {
+        const data = await Apikey.getUsage({ userId });
+
+        set.status = 200;
+
+        return {
+            message: "Dashboard data fetched",
+            data,
+        };
+    },
+    {
+        response: {
+            200: ApikeyModel.usageResponse,
+            404: t.String(),
+            500: ApikeyModel.errorResponse,
+        },
+    }
+    )
     .delete('/:id', async ({ userId, set, params: {id} }) => {
         const response = await Apikey.deleteKey({userId, id});
         set.status = 201
