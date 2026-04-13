@@ -21,7 +21,7 @@ import {
 import MainLayout from "../layout/MainLayout";
 import { useState } from "react";
 import CreateApiModal from "./CreateApiModal";
-import { DialogTrigger } from "../ui/dialog";
+import ApiKeysTable from "./ApikeyTable";
 
 const useDashboard = () => {
   const client = useElysiaClient();
@@ -39,9 +39,32 @@ const useDashboard = () => {
   });
 };
 
+const useApiKeys = () => {
+  const client = useElysiaClient();
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ["apikeys", token],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await client.api.v1.apikey.get({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        query: {
+          length: 5,
+        },
+      });
+      return res.data?.data;
+    },
+  });
+};
+
 export default function DashboardComponent() {
-  const { data: dashboard, isLoading } = useDashboard();
-  const [showModal,setShowModal] = useState<boolean>(false);
+  const { data: dashboard, isLoading: dashboardLoading } = useDashboard();
+  const { data: apiKeys, isLoading: apiLoading } = useApiKeys();
+
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   const stats = [
     { title: "Total Requests", value: dashboard?.totalRequests || 0, icon: BarChart3 },
@@ -52,7 +75,7 @@ export default function DashboardComponent() {
 
   return (
     <MainLayout>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">OpenRouter Dashboard</h1>
           <p className="text-gray-400 text-sm">Monitor usage</p>
@@ -68,7 +91,7 @@ export default function DashboardComponent() {
 
       <CreateApiModal open={showModal} setOpen={setShowModal} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
         {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -87,13 +110,13 @@ export default function DashboardComponent() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
         <Card className="xl:col-span-2 bg-white/5 border border-white/10">
           <CardContent className="p-6">
             <h2 className="mb-4">Usage Overview</h2>
 
             <div className="h-72">
-              {isLoading ? (
+              {dashboardLoading ? (
                 <p>Loading...</p>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -123,6 +146,8 @@ export default function DashboardComponent() {
           </CardContent>
         </Card>
       </div>
+
+      <ApiKeysTable keys={apiKeys?.keys} isLoading={apiLoading}/>
     </MainLayout>
   );
 }

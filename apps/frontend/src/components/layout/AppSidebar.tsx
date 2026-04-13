@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/providers/authContext";
 import useElysiaClient from "@/providers/elysiaProvider";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -39,7 +40,6 @@ const useProfileQuery = () => {
 
 export default function AppSidebar() {
   const { data: profile } = useProfileQuery();
-
   return (
     <Sidebar className="bg-[#020617] border-r border-white/10">
       <SidebarHeader>

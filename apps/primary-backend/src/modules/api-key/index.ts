@@ -5,8 +5,10 @@ import ApikeyModel from "./model";
 
 const apikey = new Elysia({prefix: '/apikey'})
     .use(userMiddleware)
-    .get('/', async ({userId , set}) => {
-        const response = await Apikey.getKeys({userId});
+    .get('/', async ({userId , query, set}) => {
+        const {length} = query
+
+        const response = await Apikey.getKeys({userId, length: length ? Number(length) : undefined});
         set.status = 201;
         return {
             message: "Apikeys were successfully fetched",

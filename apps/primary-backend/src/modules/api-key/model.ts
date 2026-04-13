@@ -37,6 +37,11 @@ const ApikeyModel = {
         userId: t.String()
     }),
 
+    getKeyBody: t.Object({
+        userId: t.String(),
+        length: t.Optional(t.Number())
+    }),
+
     getKeysResponse: t.Object({
         message: t.String(),
         data: t.Object({

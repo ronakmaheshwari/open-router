@@ -4,7 +4,7 @@ import { status } from "elysia";
 import ApikeyGenerator from "../../utils/apikeyGenerator";
 
 abstract class Apikey {
-    static async getKeys({userId}: ApikeyModel["userIdSchema"]) {
+    static async getKeys({userId, length}: ApikeyModel["getKeyBody"]) {
         const keys = await db.apiKey.findMany({
             where: {
                 userId: userId,
@@ -20,7 +20,8 @@ abstract class Apikey {
                 updatedAt: true,
                 lastUsed: true,
                 creditsConsumed: true
-            }
+            },
+            take: length
         })
 
         if(keys.length === 0 || !keys) {
