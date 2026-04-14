@@ -39,6 +39,7 @@ const useProfileQuery = () => {
 };
 
 export default function AppSidebar() {
+  const navigate = useNavigate();
   const { data: profile } = useProfileQuery();
   return (
     <Sidebar className="bg-[#020617] border-r border-white/10">
@@ -61,6 +62,7 @@ export default function AppSidebar() {
               return (
                 <button
                   key={i}
+                  onClick={()=>{navigate(`${item.path}`)}}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition"
                 >
                   <Icon className="w-4 h-4" />

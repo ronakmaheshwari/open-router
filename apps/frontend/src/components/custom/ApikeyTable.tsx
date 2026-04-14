@@ -18,7 +18,7 @@ interface ApiKeysTableProps {
   isLoading: boolean;
 }
 
-const useApiKeys = (length?: number) => {
+export const useApiKeys = (length?: number) => {
   const client = useElysiaClient();
   const { token } = useAuth();
 

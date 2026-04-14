@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import useElysiaClient from '@/providers/elysiaProvider';
 import { useAuth } from '@/providers/authContext';
 import { toast } from 'sonner';
+import { useApiKeys } from './ApikeyTable';
 
 export default function ApikeyComponent() {
   const [newKeyName, setNewKeyName] = useState('');
@@ -20,18 +21,7 @@ export default function ApikeyComponent() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["apikeys", token],
-    enabled: !!token,
-    queryFn: async () => {
-      const res = await client.api.v1.apikey.get({
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return res.data?.data?.keys || [];
-    },
-  });
+  const { data, isLoading } = useApiKeys()
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -93,7 +83,7 @@ export default function ApikeyComponent() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const apiKeys = data || [];
+  const apiKeys = data?.keys || [];
 
   return (
     <MainLayout>
@@ -108,8 +98,7 @@ export default function ApikeyComponent() {
           </p>
         </div>
 
-        {/* Create Section */}
-        <Card className="bg-white/[0.04] border border-white/10 rounded-2xl backdrop-blur-xl">
+        <Card className="bg-white/4 border border-white/10 rounded-2xl backdrop-blur-xl">
           <CardContent className="p-6 flex flex-col gap-5">
 
             <div className="flex flex-col gap-1">
@@ -127,7 +116,7 @@ export default function ApikeyComponent() {
                 value={newKeyName}
                 onChange={(e) => setNewKeyName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && createNewKey()}
-                className="h-11 bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:ring-2 focus:ring-blue-500"
+                className="h-11 bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:ring-2 focus:ring-blue-500"
               />
 
               <Button
@@ -143,12 +132,11 @@ export default function ApikeyComponent() {
           </CardContent>
         </Card>
 
-        {/* Table */}
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden">
+        <div className="rounded-2xl border border-white/10 bg-white/3 overflow-hidden">
 
           <table className="w-full text-sm">
 
-            <thead className="border-b border-white/10 bg-white/[0.02]">
+            <thead className="border-b border-white/10 bg-white/2">
               <tr className="text-white/50 text-xs uppercase tracking-wide">
                 <th className="px-6 py-4 text-left font-medium">Name</th>
                 <th className="px-6 py-4 text-left font-medium">API Key</th>
@@ -176,7 +164,7 @@ export default function ApikeyComponent() {
                 apiKeys.map((key: any) => (
                   <tr
                     key={key.id}
-                    className="border-b border-white/[0.05] hover:bg-white/[0.03] transition"
+                    className="border-b border-white/5 hover:bg-white/3 transition"
                   >
                     <td className="px-6 py-4 text-white font-medium">
                       {key.name}
