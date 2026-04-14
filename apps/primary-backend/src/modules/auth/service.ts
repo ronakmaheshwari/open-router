@@ -68,12 +68,57 @@ abstract class Auth {
         if(!user) {
             throw status(404, `The given user is not present with our services`);
         }
+
         return {
             name: user.name,
             email: user.email
         }
     }
     
+    static async editUser({userId, name, password, oldPassword}: AuthModel["editUserDetailsServiceBody"]) {
+        const findUser = await db.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if(!findUser) {
+            throw status(404, `The given user is not present with our services`)
+        }
+
+        let newHashedPassword: string | null = null;
+
+        if ((password && !oldPassword) || (!password && oldPassword)) {
+            throw status(401, `The required data was not provided`);
+        }
+
+        if (password && oldPassword) {
+            const checkPassword = await Bun.password.verify(oldPassword, findUser.password);
+
+            if (!checkPassword) {
+                throw status(401, "Invalid password was provided");
+            }
+
+            newHashedPassword = await Bun.password.hash(password, {
+                algorithm: "bcrypt",
+                cost: saltRound
+            });
+        }
+
+        const updateUser = await db.user.update({
+            where: {
+                id: findUser.id
+            },
+            data: {
+                name: name ?? findUser.name,
+                ...(newHashedPassword && { password: newHashedPassword })
+            }
+        })
+
+        return {
+            updateUser
+        }
+    }
 }
 
 export default Auth;

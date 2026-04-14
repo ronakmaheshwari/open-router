@@ -73,6 +73,20 @@ const auth = new Elysia({prefix: '/auth'})
                 message: t.String()
             })
         }
-    });
+    })
+    .patch("/profile/edit", async ({userId, body ,set}) => {
+        const response = await Auth.editUser({userId, name: body.name, password: body.password, oldPassword: body.oldPassword})
+        set.status = 201
+    },{
+        body: AuthModel.editUserDetailsBody,
+        response: {
+            201: AuthModel.editUserResponse, 
+            401: t.String(),
+            404: t.String(),
+            500: t.Object({
+                message: t.String()
+            })
+        }
+    })
 
 export default auth;

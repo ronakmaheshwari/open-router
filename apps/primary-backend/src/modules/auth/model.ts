@@ -78,6 +78,23 @@ const AuthModel = {
       name: t.String(),
       email: t.String()
     })
+  }),
+
+  editUserDetailsBody: t.Object({
+    name: t.Optional(t.String()),
+    oldPassword: t.Optional(t.String()),
+    password: t.Optional(t.String())
+  }),
+
+  editUserDetailsServiceBody: t.Object({
+    userId: t.String(),
+    name: t.Optional(t.String()),
+    oldPassword: t.Optional(t.String()),
+    password: t.Optional(t.String())
+  }),
+
+  editUserResponse: t.Object({
+    message: t.Literal("Your data was changed successfully")
   })
 
 } as const;
