@@ -11,9 +11,9 @@ import {
 import backendUrl from "./config/env";
 import Dashboard from "./pages/Dashboard";
 import Credits from "./pages/Credits";
-import Apikeys from "./pages/Apikeys";
 import { AuthProvider } from "./providers/authContext";
 import ProtectedRoute from "./components/custom/ProtectedRoute";
+import Apikeys from "./pages/Apikeys";
 
 const client = treaty<App>(backendUrl)
 const queryClient = new QueryClient()

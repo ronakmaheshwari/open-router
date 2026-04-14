@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 import { Key, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import useElysiaClient from "@/providers/elysiaProvider";
+import { useAuth } from "@/providers/authContext";
+import { useQuery } from "@tanstack/react-query";
 
 interface ApiKey {
   name: string;
@@ -15,9 +18,32 @@ interface ApiKeysTableProps {
   isLoading: boolean;
 }
 
-const ApiKeysTable = ({ keys, isLoading }: ApiKeysTableProps) => {
+const useApiKeys = (length?: number) => {
+  const client = useElysiaClient();
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ["apikeys", token, length],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await client.api.v1.apikey.get({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        ...(length !== undefined && {
+          query: { length },
+        }),
+      });
+
+      return res.data?.data;
+    },
+  });
+};
+
+const ApiKeysTable = () => {
+  const { data: apiKeys, isLoading: apiLoading } = useApiKeys(5);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const displayKeys = keys ?? [];
+  const displayKeys = apiKeys?.keys ?? [];
 
   const handleCopy = (apiKey: string, index: number) => {
     navigator.clipboard.writeText(apiKey);
@@ -38,7 +64,7 @@ const ApiKeysTable = ({ keys, isLoading }: ApiKeysTableProps) => {
             <h3 className="text-lg font-semibold text-white">API Keys</h3>
           </div>
 
-          {isLoading ? (
+          {apiLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="h-8 w-8 rounded-full border-2 border-white/30 border-t-white animate-spin" />
             </div>

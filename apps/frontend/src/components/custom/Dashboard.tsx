@@ -39,30 +39,8 @@ const useDashboard = () => {
   });
 };
 
-const useApiKeys = () => {
-  const client = useElysiaClient();
-  const { token } = useAuth();
-
-  return useQuery({
-    queryKey: ["apikeys", token],
-    enabled: !!token,
-    queryFn: async () => {
-      const res = await client.api.v1.apikey.get({
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        query: {
-          length: 5,
-        },
-      });
-      return res.data?.data;
-    },
-  });
-};
-
 export default function DashboardComponent() {
   const { data: dashboard, isLoading: dashboardLoading } = useDashboard();
-  const { data: apiKeys, isLoading: apiLoading } = useApiKeys();
 
   const [showModal, setShowModal] = useState<boolean>(false);
 
@@ -147,7 +125,7 @@ export default function DashboardComponent() {
         </Card>
       </div>
 
-      <ApiKeysTable keys={apiKeys?.keys} isLoading={apiLoading}/>
+      <ApiKeysTable />
     </MainLayout>
   );
 }
