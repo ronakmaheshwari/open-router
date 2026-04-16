@@ -19,6 +19,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@google/genai": "^1.50.1",
     "@repo/db": "*",
     "@repo/validation": "*",
     "@types/node": "^25.6.0",
