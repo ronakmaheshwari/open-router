@@ -24,7 +24,7 @@ model User {
   apikey       ApiKey[]
   conversation Conversation[]
 
-  @@index([email])
+  @@index([id, email])
 }
 
 model ApiKey {

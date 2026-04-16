@@ -10,7 +10,7 @@ interface RouterInterface {
 
 const allRoutes: RouterInterface[] = [
     {
-        path: "/conversations",
+        path: "/chat",
         router: conversationRouter
     }
 ]

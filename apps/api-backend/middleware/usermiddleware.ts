@@ -42,15 +42,13 @@ export default async function userMiddleware(
       });
     }
 
-    if (!decoded || typeof decoded !== "object" || !decoded.userId) {
+    const userId = decoded.sub as string;
+    if (!userId) {
       return res.status(401).json({
         message: "Invalid token payload",
         error: true,
       });
     }
-
-    const userId = decoded.userId as string;
-
     const user = await db.user.findUnique({
       where: { id: userId },
     });
