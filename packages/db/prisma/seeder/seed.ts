@@ -43,8 +43,15 @@ async function main() {
 
   const apiKeys = await Promise.all(
     users.map((user, i) =>
-      prisma.apiKey.create({
-        data: {
+      prisma.apiKey.upsert({
+        where: {
+          apiKey: `sk_live_${user.id.slice(0, 10)}`
+        },
+        update: {
+          lastUsed: new Date(),
+          creditsConsumed: randomBetween(0, 2000),
+        },
+        create: {
           userId: user.id,
           name: `Primary Key ${i + 1}`,
           apiKey: `sk_live_${user.id.slice(0, 10)}`,
@@ -160,7 +167,7 @@ async function main() {
     });
   }
 
-  console.log("✅ Seeding completed!");
+  console.log("Seeding completed!");
 }
 
 main()

@@ -31,18 +31,16 @@ function parseModel(model: string) {
     return { provider, modelName };
 }
 
-async function modelHelper(model: string, flatMessages: messageSchemaType[]) {
-    const { provider, modelName } = parseModel(model);
-
+async function modelHelper(provider:string, modelName: string, flatMessages: messageSchemaType[]) {
     switch (provider) {
-        case "google":
+        case "Google AI":
             return await Gemini.chat(modelName, flatMessages);
 
-        case "openai":
+        case "Direct OpenAI":
             // return await Open.chat(modelName, flatMessages);
             break;
 
-        case "anthropic":
+        case "Anthropic Direct":
             return await Claude.chat(modelName, flatMessages);
 
         default:
@@ -54,47 +52,131 @@ conversationRouter.post("/completion", userMiddleware, async(req: Request, res: 
     try {
         const user = req.userId;
 
-        if(!user) {
+        if (!user) {
             return res.status(401).json({
                 message: "You are unauthorized to access this services",
                 error: true
-            })
+            });
         }
+
         const parsed = messageBodyType.safeParse(req.body);
-        if(!parsed.success) {
+
+        if (!parsed.success) {
             return res.status(409).json({
                 errors: parsed.error.format(),
                 message: "Validation failed",
             });
         }
-        const {apikey, model, messages} = parsed.data;
+
+        const { apikey, model, messages } = parsed.data;
         const flatMessages = messages.flat();
 
-        const getModelResponse = await modelHelper(model, flatMessages);
-        
-        const createUser = await db.conversation.create({
-            data: {
-                    userId: user,
-                    inputTokenCount: getModelResponse?.inputTokens ?? 0,
-                    outputTokenCount: getModelResponse?.outputTokens ?? 0,
-                    input: JSON.stringify(flatMessages),
-                    output: JSON.stringify(getModelResponse?.completions.map((x) => {
-                        return x.message.content
-                    }) ?? [])
+        const findApikey = await db.apiKey.findUnique({
+            where: {
+                apiKey: apikey,
+                is_deleted: false,
+                disabled: false
+            },
+            include: {
+                user: {
+                    include: {
+                        credit: true
+                    }
+                }
             }
-        })
+        });
 
+        if (!findApikey) {
+            return res.status(404).json({
+                message: `Invalid apikey ${apikey} was provided`,
+                error: true
+            });
+        }
+
+        if (!findApikey.user.credit || findApikey.user.credit.amount <= 0) {
+            return res.status(409).json({
+                message: "You don’t have enough credits"
+            });
+        }
+
+        const { provider, modelName } = parseModel(model);
+
+        const findModel = await db.model.findFirst({
+            where: { slug: modelName }
+        });
+
+        if (!findModel) {
+            return res.status(404).json({
+                message: `Model ${modelName} not supported`
+            });
+        }
+
+        const findProvider = await db.provider.findUnique({
+            where: {
+                name: provider
+            }
+        });
+
+        if (!findProvider) {
+            return res.status(404).json({
+                message: `Provider ${provider} not supported`
+            });
+        }
+        
+        const mapping = await db.modelProviderMapping.findFirst({
+            where: {
+                modelId: findModel.id,
+                providerId: findProvider.id
+            },
+            include: {
+                provider: true
+            }
+        });
+
+        if (!mapping) {
+            return res.status(404).json({
+                message: `Provider ${provider} does not support model ${modelName}`
+            });
+        }
+
+        const getModelResponse = await modelHelper(
+            findProvider.name,
+            modelName,
+            flatMessages
+        );
+
+        if (!getModelResponse) {
+            return res.status(500).json({
+                message: "Model failed to generate response"
+            });
+        }
+
+        await db.conversation.create({
+            data: {
+                userId: user,
+                apiKeyId: findApikey.id,
+                modelProviderMappingId: mapping.id,
+                input: JSON.stringify(flatMessages),
+                output: JSON.stringify(
+                    getModelResponse.completions.map(x => x.message.content)
+                ),
+                inputTokenCount: getModelResponse.inputTokens ?? 0,
+                outputTokenCount: getModelResponse.outputTokens ?? 0,
+            }
+        });
 
         return res.status(200).json({
             message: getModelResponse
-        })
+        });
+
     } catch (error) {
-       console.error(error);
-       return res.status(500).json({
-        message: "Internal error occured",
-        error: error
-       }) 
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Internal error occured",
+            error
+        });
     }
-})
+});
 
 export default conversationRouter;

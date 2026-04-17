@@ -31,7 +31,7 @@ model ApiKey {
   id           String         @id @default(uuid())
   userId       String
   name         String
-  apiKey       String
+  apiKey       String         @unique
   disabled     Boolean        @default(false)
   is_deleted   Boolean        @default(false)
   lastUsed     DateTime?
@@ -82,9 +82,10 @@ model Model {
 
 model Provider {
   id                    String                 @id @default(uuid())
-  name                  String
+  name                  String  @unique
   website               String
   modelProviderMappings ModelProviderMapping[]
+  @@index([id, name])
 }
 
 model ModelProviderMapping {
