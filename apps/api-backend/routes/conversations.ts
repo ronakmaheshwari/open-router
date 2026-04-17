@@ -9,8 +9,22 @@ const conversationRouter: Router = Router();
 
 conversationRouter.get("/", userMiddleware, async (req: Request, res: Response) => {
     try {
+        const user = req.userId;
+        const findConversation = await db.conversation.findMany({
+            where: {
+                userId: user
+            }
+        })
+
+        if(!findConversation) {
+            return res.status(404).json({
+                message: "No conversations were found. Use your apikey"
+            })
+        }
+
         return res.status(200).json({
-            message: "Hii there"
+            message: "Successfully retreived the conversations",
+            data: findConversation
         })
     } catch (error) {
         console.error(error);
@@ -151,19 +165,46 @@ conversationRouter.post("/completion", userMiddleware, async(req: Request, res: 
             });
         }
 
-        await db.conversation.create({
-            data: {
-                userId: user,
-                apiKeyId: findApikey.id,
-                modelProviderMappingId: mapping.id,
-                input: JSON.stringify(flatMessages),
-                output: JSON.stringify(
-                    getModelResponse.completions.map(x => x.message.content)
-                ),
-                inputTokenCount: getModelResponse.inputTokens ?? 0,
-                outputTokenCount: getModelResponse.outputTokens ?? 0,
-            }
-        });
+        const addConversation = await db.$transaction(async (tx: Prisma.TransactionClient) => {
+            const inputCost = (getModelResponse.inputTokens ?? 0) * mapping.inputtokencost;
+            const outputCost = (getModelResponse.outputTokens ?? 0) * mapping.outputtokencost;
+            const totalCost = Math.ceil(inputCost + outputCost);
+
+            const conversation = await tx.conversation.create({
+                data: {
+                    userId: user,
+                    apiKeyId: findApikey.id,
+                    modelProviderMappingId: mapping.id,
+                    input: JSON.stringify(flatMessages),
+                    output: JSON.stringify(
+                        getModelResponse.completions.map(x => x.message.content)
+                    ),
+                    inputTokenCount: getModelResponse.inputTokens ?? 0,
+                    outputTokenCount: getModelResponse.outputTokens ?? 0,
+                }
+            });
+            await tx.credit.update({
+                where: {
+                    userId: user
+                },
+                data: {
+                    amount: {
+                        decrement: totalCost
+                    }
+                }
+            })
+            await tx.apiKey.update({
+                where: {
+                    id: findApikey.id
+                },
+                data: {
+                    creditsConsumed: {
+                        increment: totalCost
+                    },
+                    lastUsed: new Date()
+                }
+            })
+        })
 
         return res.status(200).json({
             message: getModelResponse
