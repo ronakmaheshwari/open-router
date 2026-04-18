@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=open-router    
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql:rw
+    networks:
+      - open-router
+  primary-backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.primary-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    env_file:
+      - ./apps/primary-backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:mysecretpassword@postgres:5432/open-router
+    networks:
+      - open-router
+      
+  api-backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api-backend
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+    env_file:
+      - ./apps/api-backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:mysecretpassword@postgres:5432/open-router
+    networks:
+      - open-router
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-backend
+      - primary-backend
+    env_file:
+      - ./apps/frontend/.env
+    environment:
+    - BACKEND_URL=http://localhost:3000
+    networks:
+      - open-router
+volumes:
+  pgdata:
+
+networks:
+  open-router:

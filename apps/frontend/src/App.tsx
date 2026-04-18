@@ -25,6 +25,7 @@ export function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="*" element={<SignupPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/signin" element={<SigninPage />} />
             <Route path="/dashboard" element={

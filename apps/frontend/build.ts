@@ -129,6 +129,7 @@ const result = await Bun.build({
   minify: true,
   target: "browser",
   sourcemap: "linked",
+  external: ['/env-config.js'],
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
   },
@@ -145,5 +146,6 @@ const outputTable = result.outputs.map(output => ({
 
 console.table(outputTable);
 const buildTime = (end - start).toFixed(2);
+
 
 console.log(`\n✅ Build completed in ${buildTime}ms\n`);

@@ -1,0 +1,17 @@
+FROM oven/bun:latest
+WORKDIR /app
+
+COPY package.json bun.lock turbo.json ./
+
+COPY ./apps/primary-backend ./apps/primary-backend
+COPY ./packages/db ./packages/db
+COPY ./packages/validation ./packages/validation
+COPY ./packages/typescript-config ./packages/typescript-config
+
+RUN bun install
+
+RUN bun run generate:db
+
+EXPOSE 3000
+
+CMD ["sh", "-c", "bun run migrate:db && bun run dev"]

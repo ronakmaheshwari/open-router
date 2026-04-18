@@ -1,0 +1,17 @@
+FROM oven/bun:latest
+WORKDIR /app
+
+COPY package.json bun.lock ./
+
+COPY ./packages/db ./packages/db
+COPY ./packages/validation ./packages/validation
+COPY ./packages/typescript-config ./packages/typescript-config
+COPY ./apps/api-backend ./apps/api-backend
+
+RUN bun install
+
+RUN bun run generate:db
+
+EXPOSE 3002
+
+CMD ["bun", "run", "start:api-backend"]
