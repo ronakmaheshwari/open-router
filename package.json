@@ -8,7 +8,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "generate:db": "cd packages/db && bunx prisma generate && cd ../..",
-    "migrate:db": "cd packages/db/prisma && bunx prisma migrate deploy",
+    "migrate:db": "cd packages/db && bunx prisma migrate deploy",
     "seed:db": "cd packages/db && bunx prisma db seed && cd ../..",
     "start:primary-backend": "cd apps/primary-backend && bun run dev",
     "start:api-backend": "cd apps/api-backend && bun run dev",
