@@ -1,135 +1,235 @@
-# Turborepo starter
+# Open Router
 
-This Turborepo starter is maintained by the Turborepo core team.
+Over-engineering a “simple” AI routing layer into a full-blown distributed system.
 
-## Using this example
+What started as:
 
-Run the following command:
+> “Let’s just call one model”
 
-```sh
-npx create-turbo@latest
-```
+Quickly turned into:
 
-## What's inside?
+> “What if we route across multiple models, normalize responses, add fallbacks, split services, introduce a monorepo, and accidentally build infrastructure?”
 
-This Turborepo includes the following packages/apps:
+This project is a **multi-service AI routing platform** designed to explore system design, microservices, and DevOps patterns — while pretending it's still just an API wrapper.
 
-### Apps and Packages
+---
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## What This Does
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+Open Router acts as a **central orchestration layer for AI requests**, sitting between your frontend and multiple model providers.
 
-### Utilities
+It:
 
-This Turborepo has some additional tools already setup for you:
+* Routes requests to different models
+* Handles fallbacks when things inevitably fail
+* Normalizes responses into a consistent format
+* Separates concerns across services (because one backend wasn’t enough)
+* Lets you experiment with routing strategies without breaking your app (too much)
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+---
 
-### Build
+## Why This Exists
 
-To build all apps and packages, run the following command:
+Because:
 
-```
-cd my-turborepo
+* Different models are good at different things
+* Reliability matters (especially when APIs randomly fail)
+* Cost vs performance is a constant trade-off
+* And most importantly — this was a good excuse to over-engineer something
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+---
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+## Architecture
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+This is not a “single backend” project. It’s a **monorepo with multiple services** that pretend to cooperate.
 
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+apps/
+  frontend/           → React app (the only thing users see)
+  primary-backend/    → Main orchestration layer (Elysia)
+  api-backend/        → Supporting API service (Express)
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+packages/
+  db/                 → Prisma + PostgreSQL
+  ui/                 → Shared UI components
+  validation/         → Shared schemas (Zod)
 ```
 
-### Develop
-
-To develop all apps and packages, run the following command:
+### Flow (Simplified)
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+Frontend (React)
+        |
+        v
+Primary Backend (Elysia)
+        |
+        |---- API Backend (Express)
+        |---- AI Providers
+        |
+        v
+Normalized Response
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
+
+## Tech Stack
+
+Here’s everything you’ve thrown into this (intentionally or not):
+
+| Layer             | Technology        |
+| ----------------- | ----------------- |
+| Monorepo          | Turborepo         |
+| Runtime           | Bun               |
+| Language          | TypeScript        |
+| Frontend          | React 19          |
+| Routing (FE)      | React Router 7    |
+| Data Fetching     | TanStack Query    |
+| UI Components     | Radix UI          |
+| Styling           | Tailwind CSS v4   |
+| Primary Backend   | Elysia            |
+| Secondary Backend | Express 5         |
+| Database          | PostgreSQL        |
+| ORM               | Prisma            |
+| Validation        | Zod               |
+| Logging           | pino, morgan      |
+| API Docs          | OpenAPI           |
+| AI Integration    | Google Gen AI SDK |
+| Environment       | dotenv            |
+| Middleware        | cors              |
+
+---
+
+## Features
+
+* Multi-service architecture (because one service is too mainstream)
+* AI request routing layer
+* Fallback handling for model failures
+* Shared validation across services
+* Centralized database layer with Prisma
+* Clean UI component reuse via packages
+* API abstraction layer between frontend and models
+* Logging (so you can at least see things breaking)
+
+---
+
+## Getting Started
+
+Clone the repo:
+
+```bash
+git clone https://github.com/ronakmaheshwari/open-router
+cd open-router
+```
+
+Install dependencies (Bun expected):
+
+```bash
+bun install
+```
+
+Run all apps:
+
+```bash
+bun run dev
+```
+
+---
+
+## Environment Setup
+
+Create a `.env` file in relevant apps:
 
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+DATABASE_URL=your_postgres_url
+GOOGLE_AI_KEY=your_api_key
+PORT=3000
 ```
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## Folder Breakdown
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+### `apps/frontend`
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+* React 19 app
+* Uses TanStack Query for data fetching
+* Styled with Tailwind + Radix UI
 
-```
-cd my-turborepo
+### `apps/primary-backend`
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+* Built with Elysia
+* Handles core routing logic
+* Acts as the main orchestrator
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+### `apps/api-backend`
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+* Express-based service
+* Handles supporting APIs and integrations
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+### `packages/db`
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
+* Prisma schema + database client
+* Centralized DB access
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
+### `packages/ui`
 
-## Useful Links
+* Shared UI components
+* Prevents copy-paste chaos
 
-Learn more about the power of Turborepo:
+### `packages/validation`
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+* Zod schemas
+* Shared request/response validation
+
+---
+
+## Design Decisions (a.k.a. Overthinking in Action)
+
+* **Monorepo** → because managing multiple repos is too easy
+* **Two backends** → because one didn’t feel “scalable enough”
+* **Shared packages** → because duplication is offensive
+* **Typed validation everywhere** → because runtime errors are embarrassing
+* **AI routing layer** → because calling one API directly felt illegal
+
+---
+
+## Lessons Learned
+
+* Microservices add complexity faster than they add value (initially)
+* Routing AI models is harder than it sounds
+* Shared types across services are both a blessing and a curse
+* Logging becomes your best friend very quickly
+* “Just one more abstraction” is never just one
+
+---
+
+## Future Improvements
+
+* Smarter routing (cost + latency aware)
+* Model performance tracking
+* Caching layer
+* Rate limiting
+* Streaming responses
+* Observability (so you stop guessing what's happening)
+
+---
+
+## Contributing
+
+If you:
+
+* enjoy system design
+* like debugging distributed systems
+* or just want to add another layer of abstraction
+
+You’re welcome here.
+
+---
+
+## Final Thought
+
+This project answers a very important question:
+
+**“How far can you stretch a simple idea before it becomes infrastructure?”**
+
+Turns out — pretty far.
