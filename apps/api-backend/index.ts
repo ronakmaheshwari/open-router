@@ -52,6 +52,11 @@ app.get("/", async(req: Request, res: Response) => {
     }
 })
 
-app.listen(port,() => {
-    console.log(`Api-Backend is running on: http://localhost:${port}/`)
+// app.listen(port,() => {
+//     console.log(`Api-Backend is running on: http://localhost:${port}/`)
+// })
+
+app.listen({
+  port: 3002,
+  hostname: '0.0.0.0',
 })
